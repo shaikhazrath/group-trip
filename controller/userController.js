@@ -7,16 +7,21 @@ import fs from "fs";
 //route : /register
 export const Regitser = async (req, res) => {
   try {
-    if (req.files.avatar == null || req.files.avatar == undefined) {
-      return res.status(400).json({ success: false, message: "add avatar" });
-    } else {
-      const avatar = req.files.avatar.tempFilePath;
+    const { name, email, password } = req.body;
+let avatar = req.files;
+    if (!email || !password || !name || !avatar) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Please enter all fields" });
+    }
+     avatar = req.files.avatar.tempFilePath;
+
+
       const avatarCloudinary = await cloudinary.v2.uploader.upload(avatar, {
         folder: "avatarphoto",
       });
       fs.rmSync(avatar, { recursive: true });
 
-      const { name, email, password } = req.body;
 
       let user = await User.findOne({ email });
       if (user) {
@@ -38,7 +43,7 @@ export const Regitser = async (req, res) => {
         password,
       });
       sendToken(res, user, 200, "User Register");
-    }
+    
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
